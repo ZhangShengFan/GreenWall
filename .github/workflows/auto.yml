@@ -1,0 +1,71 @@
+name: Auto GreenWall
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '模式: pixel / today / range / random'
+        required: true
+        default: 'pixel'
+      intensity_cap:
+        description: '强度上限 (1-10)'
+        required: false
+        default: '4'
+      skip_weekends:
+        description: '跳过周末 (true/false)'
+        required: false
+        default: 'false'
+      start:
+        description: '开始日期 YYYY-MM-DD'
+        required: false
+        default: ''
+      end:
+        description: '结束日期 YYYY-MM-DD'
+        required: false
+        default: ''
+      base_sunday:
+        description: '起始周日 YYYY-MM-DD'
+        required: false
+        default: ''
+      random_max:
+        description: '随机上限 (0-10)'
+        required: false
+        default: '4'
+      grid_json:
+        description: '像素格数据 JSON'
+        required: false
+        default: ''
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run script
+        env:
+          MODE:          ${{ github.event.inputs.mode }}
+          INTENSITY_CAP: ${{ github.event.inputs.intensity_cap }}
+          SKIP_WEEKENDS: ${{ github.event.inputs.skip_weekends }}
+          START:         ${{ github.event.inputs.start }}
+          END:           ${{ github.event.inputs.end }}
+          BASE_SUNDAY:   ${{ github.event.inputs.base_sunday }}
+          RANDOM_MAX:    ${{ github.event.inputs.random_max }}
+          GRID_JSON:     ${{ github.event.inputs.grid_json }}
+          GIT_AUTHOR_NAME:  ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: python auto.py
+
+      - name: Push
+        run: |
+          git config user.name  "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git push
